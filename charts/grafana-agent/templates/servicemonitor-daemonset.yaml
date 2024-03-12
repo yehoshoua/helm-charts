@@ -1,0 +1,34 @@
+{{- if and .Values.service_daemonset.enabled .Values.serviceMonitor_daemonset.enabled -}}
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: {{ include "grafana-agent.fullname" . }}-daemonset
+  labels:
+    {{- include "grafana-agent.labels-daemonset" . | nindent 4 }}
+    {{- with .Values.serviceMonitor_daemonset.additionalLabels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+spec:
+  endpoints:
+  - port: http-metrics
+    scheme: {{ .Values.agent_daemonset.listenScheme | lower }}
+    honorLabels: true
+    {{- if .Values.serviceMonitor_daemonset.interval }}
+    interval: {{ .Values.serviceMonitor_daemonset.interval }}
+    {{- end }}
+    {{- if .Values.serviceMonitor_daemonset.metricRelabelings }}
+    metricRelabelings:
+    {{ tpl (toYaml .Values.serviceMonitor_daemonset.metricRelabelings | nindent 6) . }}
+    {{- end }}
+    {{- if .Values.serviceMonitor_daemonset.relabelings }}
+    relabelings:
+    {{ tpl (toYaml .Values.serviceMonitor_daemonset.relabelings | nindent 6) . }}
+    {{- end }}
+    {{- with .Values.serviceMonitor_daemonset.tlsConfig }}
+    tlsConfig:
+    {{- toYaml . | nindent 6 }}
+    {{- end }}
+  selector:
+    matchLabels:
+      {{- include "grafana-agent.selectorLabels-daemonset" . | nindent 6 }}
+{{- end }}

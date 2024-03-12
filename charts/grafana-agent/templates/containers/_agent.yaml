@@ -1,0 +1,257 @@
+{{- define "grafana-agent-daemonset.container" -}}
+- name: grafana-agent
+  image: {{ .Values.global.image.registry | default .Values.image.registry }}/{{ .Values.image.repository }}{{ include "grafana-agent.imageId" . }}
+  imagePullPolicy: {{ .Values.image.pullPolicy }}
+  args:
+    {{- if eq .Values.agent_daemonset.mode "flow"}}
+    - run
+    - /etc/agent/{{ include "grafana-agent.config-map-daemonset.key" . }}
+    - --storage.path={{ .Values.agent_daemonset.storagePath }}
+    - --server.http.listen-addr={{ .Values.agent_daemonset.listenAddr }}:{{ .Values.agent_daemonset.listenPort }}
+    - --server.http.ui-path-prefix={{ .Values.agent_daemonset.uiPathPrefix }}
+    {{- if not .Values.agent_daemonset.enableReporting }}
+    - --disable-reporting
+    {{- end}}
+    {{- if .Values.agent_daemonset.clustering.enabled }}
+    - --cluster.enabled=true
+    - --cluster.join-addresses={{ include "grafana-agent.fullname" . }}-cluster
+    {{- end}}
+    {{- end}}
+    {{- if eq .Values.agent_daemonset.mode "static"}}
+    - -config.file=/etc/agent/{{ include "grafana-agent.config-map-daemonset.key" . }}
+    - -server.http.address={{ .Values.agent_daemonset.listenAddr }}:{{ .Values.agent_daemonset.listenPort }}
+    {{- end}}
+    {{- range .Values.agent_daemonset.extraArgs }}
+    - {{ . }}
+    {{- end}}
+  env:
+    - name: AGENT_MODE
+      value: {{ .Values.agent_daemonset.mode }}
+    - name: AGENT_DEPLOY_MODE
+      value: "helm"
+    - name: HOSTNAME
+      valueFrom:
+        fieldRef:
+          fieldPath: spec.nodeName
+    {{- range .Values.agent_daemonset.extraEnv }}
+    - {{- toYaml . | nindent 6 }}
+    {{- end }}
+  {{- if .Values.agent_daemonset.envFrom }}
+  envFrom:
+    {{- toYaml .Values.agent_daemonset.envFrom | nindent 4 }}
+  {{- end }}
+  ports:
+    - containerPort: {{ .Values.agent_daemonset.listenPort }}
+      name: http-metrics
+    {{- range $portMap := .Values.agent_daemonset.extraPorts }}
+    - containerPort: {{ $portMap.targetPort }}
+      {{- if $portMap.hostPort }}
+      hostPort: {{ $portMap.hostPort }}
+      {{- end}}
+      name: {{ $portMap.name }}
+      protocol: {{ coalesce $portMap.protocol "TCP" }}
+    {{- end }}
+  readinessProbe:
+    httpGet:
+      path: /-/ready
+      port: {{ .Values.agent_daemonset.listenPort }}
+      scheme: {{ .Values.agent_daemonset.listenScheme }}
+    initialDelaySeconds: 10
+    timeoutSeconds: 1
+  {{- with .Values.agent_daemonset.resources }}
+  resources:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  {{- with .Values.agent_daemonset.securityContext }}
+  securityContext:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  volumeMounts:
+    - name: config
+      mountPath: /etc/agent
+    {{- if .Values.agent_daemonset.mounts.varlog }}
+    - name: varlog
+      mountPath: /var/log
+      readOnly: true
+    {{- end }}
+    {{- if .Values.agent_daemonset.mounts.dockercontainers }}
+    - name: dockercontainers
+      mountPath: /var/lib/docker/containers
+      readOnly: true
+    {{- end }}
+    {{- range .Values.agent_daemonset.mounts.extra }}
+    - {{- toYaml . | nindent 6 }}
+    {{- end }}
+{{- end }}
+
+{{- define "grafana-agent-deployment.container" -}}
+- name: grafana-agent
+  image: {{ .Values.global.image.registry | default .Values.image.registry }}/{{ .Values.image.repository }}{{ include "grafana-agent.imageId" . }}
+  imagePullPolicy: {{ .Values.image.pullPolicy }}
+  args:
+    {{- if eq .Values.agent_deployment.mode "flow"}}
+    - run
+    - /etc/agent/{{ include "grafana-agent.config-map-deployment.key" . }}
+    - --storage.path={{ .Values.agent_deployment.storagePath }}
+    - --server.http.listen-addr={{ .Values.agent_deployment.listenAddr }}:{{ .Values.agent_deployment.listenPort }}
+    - --server.http.ui-path-prefix={{ .Values.agent_deployment.uiPathPrefix }}
+    {{- if not .Values.agent_deployment.enableReporting }}
+    - --disable-reporting
+    {{- end}}
+    {{- if .Values.agent_deployment.clustering.enabled }}
+    - --cluster.enabled=true
+    - --cluster.join-addresses={{ include "grafana-agent.fullname" . }}-cluster
+    {{- end}}
+    {{- end}}
+    {{- if eq .Values.agent_deployment.mode "static"}}
+    - -config.file=/etc/agent/{{ include "grafana-agent.config-map-deployment.key" . }}
+    - -server.http.address={{ .Values.agent_deployment.listenAddr }}:{{ .Values.agent_deployment.listenPort }}
+    {{- end}}
+    {{- range .Values.agent_deployment.extraArgs }}
+    - {{ . }}
+    {{- end}}
+  env:
+    - name: AGENT_MODE
+      value: {{ .Values.agent_deployment.mode }}
+    - name: AGENT_DEPLOY_MODE
+      value: "helm"
+    - name: HOSTNAME
+      valueFrom:
+        fieldRef:
+          fieldPath: spec.nodeName
+    {{- range .Values.agent_deployment.extraEnv }}
+    - {{- toYaml . | nindent 6 }}
+    {{- end }}
+  {{- if .Values.agent_deployment.envFrom }}
+  envFrom:
+    {{- toYaml .Values.agent_deployment.envFrom | nindent 4 }}
+  {{- end }}
+  ports:
+    - containerPort: {{ .Values.agent_deployment.listenPort }}
+      name: http-metrics
+    {{- range $portMap := .Values.agent_deployment.extraPorts }}
+    - containerPort: {{ $portMap.targetPort }}
+      {{- if $portMap.hostPort }}
+      hostPort: {{ $portMap.hostPort }}
+      {{- end}}
+      name: {{ $portMap.name }}
+      protocol: {{ coalesce $portMap.protocol "TCP" }}
+    {{- end }}
+  readinessProbe:
+    httpGet:
+      path: /-/ready
+      port: {{ .Values.agent_deployment.listenPort }}
+      scheme: {{ .Values.agent_deployment.listenScheme }}
+    initialDelaySeconds: 10
+    timeoutSeconds: 1
+  {{- with .Values.agent_deployment.resources }}
+  resources:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  {{- with .Values.agent_deployment.securityContext }}
+  securityContext:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  volumeMounts:
+    - name: config
+      mountPath: /etc/agent
+    {{- if .Values.agent_deployment.mounts.varlog }}
+    - name: varlog
+      mountPath: /var/log
+      readOnly: true
+    {{- end }}
+    {{- if .Values.agent_deployment.mounts.dockercontainers }}
+    - name: dockercontainers
+      mountPath: /var/lib/docker/containers
+      readOnly: true
+    {{- end }}
+    {{- range .Values.agent_deployment.mounts.extra }}
+    - {{- toYaml . | nindent 6 }}
+    {{- end }}
+{{- end }}
+
+{{- define "grafana-agent-statefulset.container" -}}
+- name: grafana-agent
+  image: {{ .Values.global.image.registry | default .Values.image.registry }}/{{ .Values.image.repository }}{{ include "grafana-agent.imageId" . }}
+  imagePullPolicy: {{ .Values.image.pullPolicy }}
+  args:
+    {{- if eq .Values.agent_statefulset.mode "flow"}}
+    - run
+    - /etc/agent/{{ include "grafana-agent.config-map-statefulset.key" . }}
+    - --storage.path={{ .Values.agent_statefulset.storagePath }}
+    - --server.http.listen-addr={{ .Values.agent_statefulset.listenAddr }}:{{ .Values.agent_statefulset.listenPort }}
+    - --server.http.ui-path-prefix={{ .Values.agent_statefulset.uiPathPrefix }}
+    {{- if not .Values.agent_statefulset.enableReporting }}
+    - --disable-reporting
+    {{- end}}
+    {{- if .Values.agent_statefulset.clustering.enabled }}
+    - --cluster.enabled=true
+    - --cluster.join-addresses={{ include "grafana-agent.fullname" . }}-cluster
+    {{- end}}
+    {{- end}}
+    {{- if eq .Values.agent_statefulset.mode "static"}}
+    - -config.file=/etc/agent/{{ include "grafana-agent.config-map-statefulset.key" . }}
+    - -server.http.address={{ .Values.agent_statefulset.listenAddr }}:{{ .Values.agent_statefulset.listenPort }}
+    {{- end}}
+    {{- range .Values.agent_statefulset.extraArgs }}
+    - {{ . }}
+    {{- end}}
+  env:
+    - name: AGENT_MODE
+      value: {{ .Values.agent_statefulset.mode }}
+    - name: AGENT_DEPLOY_MODE
+      value: "helm"
+    - name: HOSTNAME
+      valueFrom:
+        fieldRef:
+          fieldPath: spec.nodeName
+    {{- range .Values.agent_statefulset.extraEnv }}
+    - {{- toYaml . | nindent 6 }}
+    {{- end }}
+  {{- if .Values.agent_statefulset.envFrom }}
+  envFrom:
+    {{- toYaml .Values.agent_statefulset.envFrom | nindent 4 }}
+  {{- end }}
+  ports:
+    - containerPort: {{ .Values.agent_statefulset.listenPort }}
+      name: http-metrics
+    {{- range $portMap := .Values.agent_statefulset.extraPorts }}
+    - containerPort: {{ $portMap.targetPort }}
+      {{- if $portMap.hostPort }}
+      hostPort: {{ $portMap.hostPort }}
+      {{- end}}
+      name: {{ $portMap.name }}
+      protocol: {{ coalesce $portMap.protocol "TCP" }}
+    {{- end }}
+  readinessProbe:
+    httpGet:
+      path: /-/ready
+      port: {{ .Values.agent_statefulset.listenPort }}
+      scheme: {{ .Values.agent_statefulset.listenScheme }}
+    initialDelaySeconds: 10
+    timeoutSeconds: 1
+  {{- with .Values.agent_statefulset.resources }}
+  resources:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  {{- with .Values.agent_statefulset.securityContext }}
+  securityContext:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  volumeMounts:
+    - name: config
+      mountPath: /etc/agent
+    {{- if .Values.agent_statefulset.mounts.varlog }}
+    - name: varlog
+      mountPath: /var/log
+      readOnly: true
+    {{- end }}
+    {{- if .Values.agent_statefulset.mounts.dockercontainers }}
+    - name: dockercontainers
+      mountPath: /var/lib/docker/containers
+      readOnly: true
+    {{- end }}
+    {{- range .Values.agent_statefulset.mounts.extra }}
+    - {{- toYaml . | nindent 6 }}
+    {{- end }}
+{{- end }}

@@ -1,0 +1,31 @@
+{{- if .Values.service_deployment.enabled -}}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "grafana-agent.fullname" . }}-deployment
+  labels:
+    {{- include "grafana-agent.labels-deployment" . | nindent 4 }}
+  {{- with .Values.service_deployment.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  type: {{ .Values.service_deployment.type }}
+  {{- if .Values.service_deployment.clusterIP }}
+  clusterIP: {{ .Values.service_deployment.clusterIP }}
+  {{- end }}
+  selector:
+    {{- include "grafana-agent.selectorLabels-deployment" . | nindent 4 }}
+  internalTrafficPolicy: {{.Values.service_deployment.internalTrafficPolicy}}
+  ports:
+    - name: http-metrics
+      port: {{ .Values.agent_deployment.listenPort }}
+      targetPort: {{ .Values.agent_deployment.listenPort }}
+      protocol: "TCP"
+{{- range $portMap := .Values.agent_deployment.extraPorts }}
+    - name: {{ $portMap.name }}
+      port: {{ $portMap.port }}
+      targetPort: {{ $portMap.targetPort }}
+      protocol: {{ coalesce $portMap.protocol "TCP" }}
+{{- end }}
+{{- end }}

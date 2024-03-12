@@ -1,0 +1,34 @@
+{{- if and .Values.service_statefulset.enabled .Values.serviceMonitor_statefulset.enabled -}}
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: {{ include "grafana-agent.fullname" . }}-statefulset
+  labels:
+    {{- include "grafana-agent.labels-statefulset" . | nindent 4 }}
+    {{- with .Values.serviceMonitor_statefulset.additionalLabels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+spec:
+  endpoints:
+  - port: http-metrics
+    scheme: {{ .Values.agent_statefulset.listenScheme | lower }}
+    honorLabels: true
+    {{- if .Values.serviceMonitor_statefulset.interval }}
+    interval: {{ .Values.serviceMonitor_statefulset.interval }}
+    {{- end }}
+    {{- if .Values.serviceMonitor_statefulset.metricRelabelings }}
+    metricRelabelings:
+    {{ tpl (toYaml .Values.serviceMonitor_statefulset.metricRelabelings | nindent 6) . }}
+    {{- end }}
+    {{- if .Values.serviceMonitor_statefulset.relabelings }}
+    relabelings:
+    {{ tpl (toYaml .Values.serviceMonitor_statefulset.relabelings | nindent 6) . }}
+    {{- end }}
+    {{- with .Values.serviceMonitor_statefulset.tlsConfig }}
+    tlsConfig:
+    {{- toYaml . | nindent 6 }}
+    {{- end }}
+  selector:
+    matchLabels:
+      {{- include "grafana-agent.selectorLabels-statefulset" . | nindent 6 }}
+{{- end }}

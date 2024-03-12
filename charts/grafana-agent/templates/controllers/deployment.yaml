@@ -1,0 +1,26 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "grafana-agent.fullname" . }}-deployment
+  labels:
+    {{- include "grafana-agent.labels-deployment" . | nindent 4 }}
+  {{- with .Values.controller_deployment.extraAnnotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  {{- if not .Values.controller_deployment.autoscaling.enabled }}
+  replicas: {{ .Values.controller_deployment.replicas }}
+  {{- end }}
+  {{- if ge (int .Capabilities.KubeVersion.Minor) 22 }}
+  minReadySeconds: 10
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "grafana-agent.selectorLabels-deployment" . | nindent 6 }}
+  template:
+    {{- include "grafana-agent.pod-deployment-template" . | nindent 4 }}
+  {{- with .Values.controller_deployment.updateStrategy }}
+  strategy:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}

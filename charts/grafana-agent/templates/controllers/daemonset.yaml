@@ -1,0 +1,23 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: {{ include "grafana-agent.fullname" . }}-daemonset
+  labels:
+    {{- include "grafana-agent.labels-daemonset" . | nindent 4 }}
+  {{- with .Values.controller_daemonset.extraAnnotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  {{- if ge (int .Capabilities.KubeVersion.Minor) 22 }}
+  minReadySeconds: 10
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "grafana-agent.selectorLabels-daemonset" . | nindent 6 }}
+  template:
+    {{- include "grafana-agent.pod-daemonset-template" . | nindent 4 }}
+  {{- with .Values.controller_daemonset.updateStrategy }}
+  updateStrategy:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}

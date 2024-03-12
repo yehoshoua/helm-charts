@@ -1,0 +1,249 @@
+{{- define "grafana-agent.pod-daemonset-template" -}}
+metadata:
+  annotations:
+    kubectl.kubernetes.io/default-container: grafana-agent
+    {{- with .Values.controller_daemonset.podAnnotations }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
+  labels:
+    {{- include "grafana-agent.labels-daemonset" . | nindent 4 }}
+    {{- with .Values.controller_daemonset.podLabels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+spec:
+  {{- with .Values.global.podSecurityContext }}
+  securityContext:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  serviceAccountName: {{ include "grafana-agent.serviceAccountName" . }}
+  {{- if or .Values.global.image.pullSecrets .Values.image.pullSecrets }}
+  imagePullSecrets:
+    {{- if .Values.global.image.pullSecrets }}
+    {{- toYaml .Values.global.image.pullSecrets | nindent 4 }}
+    {{- else }}
+    {{- toYaml .Values.image.pullSecrets | nindent 4 }}
+    {{- end }}
+  {{- end }}
+  {{- if .Values.controller_daemonset.initContainers }}
+  initContainers:
+    {{- with .Values.controller_daemonset.initContainers }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+  {{- end }}
+  containers:
+    {{- include "grafana-agent-daemonset.container" . | nindent 4 }}
+    {{- include "grafana-agent.watch-container-daemonset" . | nindent 4 }}
+    {{- with .Values.controller_daemonset.extraContainers }}
+    {{- toYaml . | nindent 4 }}
+    {{- end}}
+  {{- if .Values.controller_daemonset.priorityClassName }}
+  priorityClassName: {{ .Values.controller_daemonset.priorityClassName }}
+  {{- end }}
+  {{- if .Values.controller_daemonset.hostNetwork }}
+  hostNetwork: {{ .Values.controller_daemonset.hostNetwork }}
+  {{- end }}
+  {{- if .Values.controller_daemonset.hostPID }}
+  hostPID: {{ .Values.controller_daemonset.hostPID }}
+  {{- end }}
+  dnsPolicy: {{ .Values.controller_daemonset.dnsPolicy }}
+  {{- with .Values.controller_daemonset.affinity }}
+  affinity:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  {{- with .Values.controller_daemonset.nodeSelector }}
+  nodeSelector:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  {{- with .Values.controller_daemonset.tolerations }}
+  tolerations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  {{- with .Values.controller_daemonset.topologySpreadConstraints }}
+  topologySpreadConstraints:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  volumes:
+    - name: config
+      configMap:
+        name: {{ include "grafana-agent.config-map-daemonset.name" . }}
+    {{- if .Values.agent_daemonset.mounts.varlog }}
+    - name: varlog
+      hostPath:
+        path: /var/log
+    {{- end }}
+    {{- if .Values.agent_daemonset.mounts.dockercontainers }}
+    - name: dockercontainers
+      hostPath:
+        path: /var/lib/docker/containers
+    {{- end }}
+    {{- if .Values.controller_daemonset.volumes.extra }}
+    {{- toYaml .Values.controller_daemonset.volumes.extra | nindent 4 }}
+    {{- end }}
+{{- end }}
+
+{{- define "grafana-agent.pod-deployment-template" -}}
+metadata:
+  annotations:
+    kubectl.kubernetes.io/default-container: grafana-agent
+    {{- with .Values.controller_deployment.podAnnotations }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
+  labels:
+    {{- include "grafana-agent.labels-deployment" . | nindent 4 }}
+    {{- with .Values.controller_deployment.podLabels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+spec:
+  {{- with .Values.global.podSecurityContext }}
+  securityContext:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  serviceAccountName: {{ include "grafana-agent.serviceAccountName" . }}
+  {{- if or .Values.global.image.pullSecrets .Values.image.pullSecrets }}
+  imagePullSecrets:
+    {{- if .Values.global.image.pullSecrets }}
+    {{- toYaml .Values.global.image.pullSecrets | nindent 4 }}
+    {{- else }}
+    {{- toYaml .Values.image.pullSecrets | nindent 4 }}
+    {{- end }}
+  {{- end }}
+  {{- if .Values.controller_deployment.initContainers }}
+  initContainers:
+    {{- with .Values.controller_deployment.initContainers }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+  {{- end }}
+  containers:
+    {{- include "grafana-agent-deployment.container" . | nindent 4 }}
+    {{- include "grafana-agent.watch-container-deployment" . | nindent 4 }}
+    {{- with .Values.controller_deployment.extraContainers }}
+    {{- toYaml . | nindent 4 }}
+    {{- end}}
+  {{- if .Values.controller_deployment.priorityClassName }}
+  priorityClassName: {{ .Values.controller_deployment.priorityClassName }}
+  {{- end }}
+  {{- if .Values.controller_deployment.hostNetwork }}
+  hostNetwork: {{ .Values.controller_deployment.hostNetwork }}
+  {{- end }}
+  {{- if .Values.controller_deployment.hostPID }}
+  hostPID: {{ .Values.controller_deployment.hostPID }}
+  {{- end }}
+  dnsPolicy: {{ .Values.controller_deployment.dnsPolicy }}
+  {{- with .Values.controller_deployment.affinity }}
+  affinity:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  {{- with .Values.controller_deployment.nodeSelector }}
+  nodeSelector:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  {{- with .Values.controller_deployment.tolerations }}
+  tolerations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  {{- with .Values.controller_deployment.topologySpreadConstraints }}
+  topologySpreadConstraints:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  volumes:
+    - name: config
+      configMap:
+        name: {{ include "grafana-agent.config-map-deployment.name" . }}
+    {{- if .Values.agent_deployment.mounts.varlog }}
+    - name: varlog
+      hostPath:
+        path: /var/log
+    {{- end }}
+    {{- if .Values.agent_deployment.mounts.dockercontainers }}
+    - name: dockercontainers
+      hostPath:
+        path: /var/lib/docker/containers
+    {{- end }}
+    {{- if .Values.controller_deployment.volumes.extra }}
+    {{- toYaml .Values.controller_deployment.volumes.extra | nindent 4 }}
+    {{- end }}
+{{- end }}
+
+{{- define "grafana-agent.pod-statefulset-template" -}}
+metadata:
+  annotations:
+    kubectl.kubernetes.io/default-container: grafana-agent
+    {{- with .Values.controller_statefulset.podAnnotations }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
+  labels:
+    {{- include "grafana-agent.labels-statefulset" . | nindent 4 }}
+    {{- with .Values.controller_statefulset.podLabels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+spec:
+  {{- with .Values.global.podSecurityContext }}
+  securityContext:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  serviceAccountName: {{ include "grafana-agent.serviceAccountName" . }}
+  {{- if or .Values.global.image.pullSecrets .Values.image.pullSecrets }}
+  imagePullSecrets:
+    {{- if .Values.global.image.pullSecrets }}
+    {{- toYaml .Values.global.image.pullSecrets | nindent 4 }}
+    {{- else }}
+    {{- toYaml .Values.image.pullSecrets | nindent 4 }}
+    {{- end }}
+  {{- end }}
+  {{- if .Values.controller_statefulset.initContainers }}
+  initContainers:
+    {{- with .Values.controller_statefulset.initContainers }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+  {{- end }}
+  containers:
+    {{- include "grafana-agent-statefulset.container" . | nindent 4 }}
+    {{- include "grafana-agent.watch-container-statefulset" . | nindent 4 }}
+    {{- with .Values.controller_statefulset.extraContainers }}
+    {{- toYaml . | nindent 4 }}
+    {{- end}}
+  {{- if .Values.controller_statefulset.priorityClassName }}
+  priorityClassName: {{ .Values.controller_statefulset.priorityClassName }}
+  {{- end }}
+  {{- if .Values.controller_statefulset.hostNetwork }}
+  hostNetwork: {{ .Values.controller_statefulset.hostNetwork }}
+  {{- end }}
+  {{- if .Values.controller_statefulset.hostPID }}
+  hostPID: {{ .Values.controller_statefulset.hostPID }}
+  {{- end }}
+  dnsPolicy: {{ .Values.controller_statefulset.dnsPolicy }}
+  {{- with .Values.controller_statefulset.affinity }}
+  affinity:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  {{- with .Values.controller_statefulset.nodeSelector }}
+  nodeSelector:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  {{- with .Values.controller_statefulset.tolerations }}
+  tolerations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  {{- with .Values.controller_statefulset.topologySpreadConstraints }}
+  topologySpreadConstraints:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  volumes:
+    - name: config
+      configMap:
+        name: {{ include "grafana-agent.config-map-statefulset.name" . }}
+    {{- if .Values.agent_statefulset.mounts.varlog }}
+    - name: varlog
+      hostPath:
+        path: /var/log
+    {{- end }}
+    {{- if .Values.agent_statefulset.mounts.dockercontainers }}
+    - name: dockercontainers
+      hostPath:
+        path: /var/lib/docker/containers
+    {{- end }}
+    {{- if .Values.controller_statefulset.volumes.extra }}
+    {{- toYaml .Values.controller_statefulset.volumes.extra | nindent 4 }}
+    {{- end }}
+{{- end }}
+

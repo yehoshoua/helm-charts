@@ -1,0 +1,30 @@
+{{- if and (eq .Values.agent_statefulset.mode "flow") (.Values.agent_statefulset.clustering.enabled) -}}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "grafana-agent.fullname" . }}-cluster
+  labels:
+    {{- include "grafana-agent.labels-statefulset" . | nindent 4 }}
+spec:
+  type: ClusterIP
+  clusterIP: 'None'
+  selector:
+    {{- include "grafana-agent.selectorLabels-statefulset" . | nindent 4 }}
+  ports:
+    # Do not include the -metrics suffix in the port name, otherwise metrics
+    # can be double-collected with the non-headless Service if it's also
+    # enabled.
+    #
+    # This service should only be used for clustering, and not metric
+    # collection.
+    - name: http
+      port: {{ .Values.agent_statefulset.listenPort }}
+      targetPort: {{ .Values.agent_statefulset.listenPort }}
+      protocol: "TCP"
+  {{- range $portMap := .Values.agent_statefulset.extraPorts }}
+    - name: {{ $portMap.name }}
+      port: {{ $portMap.port }}
+      targetPort: {{ $portMap.targetPort }}
+      protocol: {{ coalesce $portMap.protocol "TCP" }}
+  {{- end }}
+{{- end }}

@@ -1,0 +1,31 @@
+{{- if .Values.service_daemonset.enabled -}}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "grafana-agent.fullname" . }}-daemonset
+  labels:
+    {{- include "grafana-agent.labels-daemonset" . | nindent 4 }}
+  {{- with .Values.service_daemonset.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  type: {{ .Values.service_daemonset.type }}
+  {{- if .Values.service_daemonset.clusterIP }}
+  clusterIP: {{ .Values.service_daemonset.clusterIP }}
+  {{- end }}
+  selector:
+    {{- include "grafana-agent.selectorLabels-daemonset" . | nindent 4 }}
+  internalTrafficPolicy: {{.Values.service_daemonset.internalTrafficPolicy}}
+  ports:
+    - name: http-metrics
+      port: {{ .Values.agent_daemonset.listenPort }}
+      targetPort: {{ .Values.agent_daemonset.listenPort }}
+      protocol: "TCP"
+{{- range $portMap := .Values.agent_daemonset.extraPorts }}
+    - name: {{ $portMap.name }}
+      port: {{ $portMap.port }}
+      targetPort: {{ $portMap.targetPort }}
+      protocol: {{ coalesce $portMap.protocol "TCP" }}
+{{- end }}
+{{- end }}

@@ -1,0 +1,80 @@
+{{- define "grafana-agent.watch-container-daemonset" -}}
+{{- if .Values.configReloader.enabled -}}
+- name: config-reloader-daemonset
+  image: {{ .Values.global.image.registry | default .Values.configReloader.image.registry }}/{{ .Values.configReloader.image.repository }}{{ include "config-reloader.imageId" . }}
+  {{- if .Values.configReloader.customArgs }}
+  args:
+    {{- toYaml .Values.configReloader.customArgs | nindent 4 }}
+  {{- else }}
+  args:
+    - --volume-dir=/etc/agent
+    - --webhook-url=http://localhost:{{ .Values.agent_daemonset.listenPort }}/-/reload
+  {{- end }}
+  volumeMounts:
+    - name: config
+      mountPath: /etc/agent
+  {{- with .Values.configReloader.resources }}
+  resources:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  {{- with .Values.configReloader.securityContext }}
+  securityContext:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+{{- end }}
+{{- end -}}
+
+{{- define "grafana-agent.watch-container-deployment" -}}
+{{- if .Values.configReloader.enabled -}}
+- name: config-reloader-deployment
+  image: {{ .Values.global.image.registry | default .Values.configReloader.image.registry }}/{{ .Values.configReloader.image.repository }}{{ include "config-reloader.imageId" . }}
+  {{- if .Values.configReloader.customArgs }}
+  args:
+    {{- toYaml .Values.configReloader.customArgs | nindent 4 }}
+  {{- else }}
+  args:
+    - --volume-dir=/etc/agent
+    - --webhook-url=http://localhost:{{ .Values.agent_deployment.listenPort }}/-/reload
+  {{- end }}
+  volumeMounts:
+    - name: config
+      mountPath: /etc/agent
+  {{- with .Values.configReloader.resources }}
+  resources:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  {{- with .Values.configReloader.securityContext }}
+  securityContext:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+{{- end }}
+{{- end -}}
+
+{{- define "grafana-agent.watch-container-statefulset" -}}
+{{- if .Values.configReloader.enabled -}}
+- name: config-reloader-statefulset
+  image: {{ .Values.global.image.registry | default .Values.configReloader.image.registry }}/{{ .Values.configReloader.image.repository }}{{ include "config-reloader.imageId" . }}
+  {{- if .Values.configReloader.customArgs }}
+  args:
+    {{- toYaml .Values.configReloader.customArgs | nindent 4 }}
+  {{- else }}
+  args:
+    - --volume-dir=/etc/agent
+    - --webhook-url=http://localhost:{{ .Values.agent_statefulset.listenPort }}/-/reload
+  {{- end }}
+  volumeMounts:
+    - name: config
+      mountPath: /etc/agent
+  {{- with .Values.configReloader.resources }}
+  resources:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  {{- with .Values.configReloader.securityContext }}
+  securityContext:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+{{- end }}
+{{- end -}}
+
+
+

@@ -1,0 +1,11 @@
+apiVersion: v2
+name: grafana-agent
+description: 'Grafana Agent'
+type: application
+version: 0.36.0
+appVersion: 'v0.40.2'
+dependencies:
+  - name: kube-state-metrics
+    version: "5.16.*"
+    repository: https://prometheus-community.github.io/helm-charts
+    condition: kube-state-metrics.enabled

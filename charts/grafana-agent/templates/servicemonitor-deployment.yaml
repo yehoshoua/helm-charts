@@ -1,0 +1,34 @@
+{{- if and .Values.service_deployment.enabled .Values.serviceMonitor_deployment.enabled -}}
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: {{ include "grafana-agent.fullname" . }}-deployment
+  labels:
+    {{- include "grafana-agent.labels-deployment" . | nindent 4 }}
+    {{- with .Values.serviceMonitor_deployment.additionalLabels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+spec:
+  endpoints:
+  - port: http-metrics
+    scheme: {{ .Values.agent_deployment.listenScheme | lower }}
+    honorLabels: true
+    {{- if .Values.serviceMonitor.interval }}
+    interval: {{ .Values.serviceMonitor_deployment.interval }}
+    {{- end }}
+    {{- if .Values.serviceMonitor_deployment.metricRelabelings }}
+    metricRelabelings:
+    {{ tpl (toYaml .Values.serviceMonitor_deployment.metricRelabelings | nindent 6) . }}
+    {{- end }}
+    {{- if .Values.serviceMonitor_deployment.relabelings }}
+    relabelings:
+    {{ tpl (toYaml .Values.serviceMonitor_deployment.relabelings | nindent 6) . }}
+    {{- end }}
+    {{- with .Values.serviceMonitor_deployment.tlsConfig }}
+    tlsConfig:
+    {{- toYaml . | nindent 6 }}
+    {{- end }}
+  selector:
+    matchLabels:
+      {{- include "grafana-agent.selectorLabels-deployment" . | nindent 6 }}
+{{- end }}

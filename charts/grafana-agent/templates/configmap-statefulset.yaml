@@ -1,0 +1,22 @@
+{{- if .Values.agent_statefulset.configMap.create }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "grafana-agent.fullname" . }}-statefulset
+  labels:
+    {{- include "grafana-agent.labels-statefulset" . | nindent 4 }}
+data:
+  {{- if eq .Values.agent_statefulset.mode "flow" }}
+  {{- if .Values.agent_statefulset.configMap.content }}
+  config.river: |- {{- (tpl  .Values.agent_statefulset.configMap.content .) | nindent 4 }}
+  {{- else }}
+  config.river: |- {{- .Files.Get "config/example.river" | trim | nindent 4 }}
+  {{- end }}
+  {{- else if eq .Values.agent_statefulset.mode "static" }}
+  {{- if .Values.agent_statefulset.configMap.content }}
+  config.yaml: |- {{- (tpl .Values.agent_statefulset.configMap.content .) | nindent 4 }}
+  {{- else }}
+  config.yaml: |- {{- .Files.Get "config/example.yaml" | trim | nindent 4 }}
+  {{- end }}
+  {{- end }}
+{{- end }}

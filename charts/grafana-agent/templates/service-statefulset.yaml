@@ -1,0 +1,31 @@
+{{- if .Values.service_statefulset.enabled -}}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "grafana-agent.fullname" . }}-statefulset
+  labels:
+    {{- include "grafana-agent.labels-statefulset" . | nindent 4 }}
+  {{- with .Values.service_statefulset.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  type: {{ .Values.service_statefulset.type }}
+  {{- if .Values.service_statefulset.clusterIP }}
+  clusterIP: {{ .Values.service_statefulset.clusterIP }}
+  {{- end }}
+  selector:
+    {{- include "grafana-agent.selectorLabels-statefulset" . | nindent 4 }}
+  internalTrafficPolicy: {{.Values.service_statefulset.internalTrafficPolicy}}
+  ports:
+    - name: http-metrics
+      port: {{ .Values.agent_statefulset.listenPort }}
+      targetPort: {{ .Values.agent_statefulset.listenPort }}
+      protocol: "TCP"
+{{- range $portMap := .Values.agent_statefulset.extraPorts }}
+    - name: {{ $portMap.name }}
+      port: {{ $portMap.port }}
+      targetPort: {{ $portMap.targetPort }}
+      protocol: {{ coalesce $portMap.protocol "TCP" }}
+{{- end }}
+{{- end }}

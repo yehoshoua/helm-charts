@@ -1,0 +1,22 @@
+{{- if .Values.agent_deployment.configMap.create }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "grafana-agent.fullname" . }}-deployment
+  labels:
+    {{- include "grafana-agent.labels-deployment" . | nindent 4 }}
+data:
+  {{- if eq .Values.agent_deployment.mode "flow" }}
+  {{- if .Values.agent_deployment.configMap.content }}
+  config.river: |- {{- (tpl  .Values.agent_deployment.configMap.content .) | nindent 4 }}
+  {{- else }}
+  config.river: |- {{- .Files.Get "config/example.river" | trim | nindent 4 }}
+  {{- end }}
+  {{- else if eq .Values.agent_deployment.mode "static" }}
+  {{- if .Values.agent_deployment.configMap.content }}
+  config.yaml: |- {{- (tpl .Values.agent_deployment.configMap.content .) | nindent 4 }}
+  {{- else }}
+  config.yaml: |- {{- .Files.Get "config/example.yaml" | trim | nindent 4 }}
+  {{- end }}
+  {{- end }}
+{{- end }}
