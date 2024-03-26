@@ -2,6 +2,21 @@ apiVersion: v1
 entries:
   grafana-agent:
   - apiVersion: v2
+    appVersion: v0.40.3
+    created: "2024-03-26T18:28:19.476063+02:00"
+    dependencies:
+    - condition: kube-state-metrics.enabled
+      name: kube-state-metrics
+      repository: https://prometheus-community.github.io/helm-charts
+      version: 5.18.0
+    description: Grafana Agent
+    digest: 0a700700d3c3c693b12731b95b0446c72247d60fb20d2bb788f0149d835ceda6
+    name: grafana-agent
+    type: application
+    urls:
+    - https://github.com/yehoshoua/helm-charts/grafana-agent-0.37.0.tgz
+    version: 0.37.0
+  - apiVersion: v2
     appVersion: v0.40.2
     created: "2024-03-12T16:57:14.783631+02:00"
     dependencies:
@@ -17,6 +32,48 @@ entries:
     - https://yehoshoua.github.io/helm-charts/grafana-agent-0.36.0.tgz
     version: 0.36.0
   prometheus-operator-crds:
+  - annotations:
+      artifacthub.io/links: |
+        - name: Chart Source
+          url: https://github.com/prometheus-community/helm-charts
+      artifacthub.io/maintainers: |
+        - name: dacamposol
+          email: dacamposol@gmail.com
+        - name: desaintmartin
+          email: cedric@desaintmartin.fr
+        - name: QuentinBisson
+          email: quentin.bisson@gmail.com
+    apiVersion: v2
+    appVersion: v0.71.2
+    created: "2024-03-26T18:28:19.477635+02:00"
+    dependencies:
+    - name: crds
+      repository: ""
+      version: 0.0.0
+    description: 'A Helm chart that collects custom resource definitions (CRDs) from
+      the Prometheus Operator, allowing for seamless integration with GitOps tools '
+    digest: 1af8aca499028fb49cdf6c822279c9116fff62f6f9e07e206ded912de05827b4
+    icon: https://raw.githubusercontent.com/prometheus/prometheus.github.io/master/assets/prometheus_logo-cb55bb5c346.png
+    keywords:
+    - prometheus
+    - crds
+    kubeVersion: '>=1.16.0-0'
+    maintainers:
+    - email: dacamposol@gmail.com
+      name: dacamposol
+    - email: cedric@desaintmartin.fr
+      name: desaintmartin
+    - email: quentin.bisson@gmail.com
+      name: QuentinBisson
+    - email: github@jkroepke.de
+      name: jkroepke
+    name: prometheus-operator-crds
+    sources:
+    - https://github.com/prometheus-community/helm-charts
+    type: application
+    urls:
+    - https://github.com/yehoshoua/helm-charts/prometheus-operator-crds-10.0.0.tgz
+    version: 10.0.0
   - annotations:
       artifacthub.io/links: |
         - name: Chart Source
@@ -59,4 +116,4 @@ entries:
     urls:
     - https://yehoshoua.github.io/helm-charts/prometheus-operator-crds-9.0.1.tgz
     version: 9.0.1
-generated: "2024-03-12T16:57:14.778827+02:00"
+generated: "2024-03-26T18:28:19.469554+02:00"
