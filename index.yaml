@@ -3,18 +3,18 @@ entries:
   grafana-agent:
   - apiVersion: v2
     appVersion: v0.40.3
-    created: "2024-03-26T18:36:03.760345+02:00"
+    created: "2024-03-26T18:43:48.588381+02:00"
     dependencies:
     - condition: kube-state-metrics.enabled
       name: kube-state-metrics
       repository: https://prometheus-community.github.io/helm-charts
       version: 5.18.0
     description: Grafana Agent
-    digest: 0a700700d3c3c693b12731b95b0446c72247d60fb20d2bb788f0149d835ceda6
+    digest: a475ca30ff0aee53090d7542f4e0c1748f1dba70ae2c27cbd0a48b3a326781cb
     name: grafana-agent
     type: application
     urls:
-    - https://github.com/yehoshoua/helm-charts/grafana-agent-0.37.0.tgz
+    - https://yehoshoua.github.io/helm-charts/grafana-agent-0.37.0.tgz
     version: 0.37.0
   prometheus-operator-crds:
   - annotations:
@@ -29,15 +29,15 @@ entries:
         - name: QuentinBisson
           email: quentin.bisson@gmail.com
     apiVersion: v2
-    appVersion: v0.71.2
-    created: "2024-03-26T18:36:03.762041+02:00"
+    appVersion: v0.72.0
+    created: "2024-03-26T18:43:48.589673+02:00"
     dependencies:
     - name: crds
       repository: ""
       version: 0.0.0
     description: 'A Helm chart that collects custom resource definitions (CRDs) from
       the Prometheus Operator, allowing for seamless integration with GitOps tools '
-    digest: 1af8aca499028fb49cdf6c822279c9116fff62f6f9e07e206ded912de05827b4
+    digest: 0bc60c2a446ff11a9978dd1de770a51dfa2a61149aba12db868482448fafd7e9
     icon: https://raw.githubusercontent.com/prometheus/prometheus.github.io/master/assets/prometheus_logo-cb55bb5c346.png
     keywords:
     - prometheus
@@ -57,6 +57,6 @@ entries:
     - https://github.com/prometheus-community/helm-charts
     type: application
     urls:
-    - https://github.com/yehoshoua/helm-charts/prometheus-operator-crds-10.0.0.tgz
+    - https://yehoshoua.github.io/helm-charts/prometheus-operator-crds-10.0.0.tgz
     version: 10.0.0
-generated: "2024-03-26T18:36:03.75401+02:00"
+generated: "2024-03-26T18:43:48.584166+02:00"

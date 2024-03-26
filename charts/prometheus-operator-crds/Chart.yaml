@@ -9,7 +9,7 @@ description: |
 keywords:
   - prometheus
   - crds
-appVersion: v0.71.2
+appVersion: v0.72.0
 kubeVersion: ">=1.16.0-0"
 sources:
   - https://github.com/prometheus-community/helm-charts
